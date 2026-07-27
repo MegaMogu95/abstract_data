@@ -27,6 +27,10 @@ namespace ft
 			template <class, class, class, class>
 			friend class list_iterator;
 
+			// the container may reach the node it owns
+			template<class, class>
+			friend class list;
+
 		public:
 			list_iterator():
 				_node(NULL)

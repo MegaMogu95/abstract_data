@@ -2,7 +2,7 @@ NAME		= ft_containers
 STD_NAME	= std_containers
 
 CXX			= c++
-CXXFLAGS	= -Wall -Wextra -Werror -std=c++98
+CXXFLAGS	= -Wall -Wextra -Werror -std=c++98 -g
 INCLUDES	= -I include
 
 SRC_DIR		= tests

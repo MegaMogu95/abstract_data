@@ -1,6 +1,8 @@
 #ifndef LIST_TPP
 # define LIST_TPP
 
+# include "utility.hpp" //_swap
+
 namespace ft
 {
 	// ------------------------------------------------------------------ //
@@ -9,10 +11,28 @@ namespace ft
 
 	template<class T, class Allocator>
 	typename list<T, Allocator>::Node*
-	list<T, Allocator>::_make_node(const T& value)
+	list<T, Allocator>::_init_end()
+	{
+		Node* node = _make_node();
+		node->prev = node;
+		node->next = node;
+		return (node);
+	}
+
+	template<class T, class Allocator>
+	typename list<T, Allocator>::Node*
+	list<T, Allocator>::_make_node()
 	{
 		Node* node = _allocator.allocate(1);
 		_allocator.construct(node, Node());
+		return (node);
+	}
+
+	template<class T, class Allocator>
+	typename list<T, Allocator>::Node*
+	list<T, Allocator>::_make_node(const T& value)
+	{
+		Node* node = _make_node();
 		node->value = value;
 		return (node);
 	}
@@ -24,14 +44,32 @@ namespace ft
 		_allocator.deallocate(node, 1);
 	}
 
+	template<class T, class Allocator>
+	void	list<T, Allocator>::_erase_node(Node* node)
+	{
+		node->next->prev = node->prev;
+		node->prev->next = node->next;
+		_destroy_node(node);
+		_size--;
+	}
+
+	template<class T, class Allocator>
+	template<class U>
+	void	list<T, Allocator>::_swap(U& a, U& b)
+	{
+		U	tmp = a;
+
+		a = b;
+		b = tmp;
+	}
+
 	// ------------------------------------------------------------------ //
 	//  Orthodox                                                           //
 	// ------------------------------------------------------------------ //
 
 	template<class T, class Allocator>
 	list<T, Allocator>::list(const Allocator& allocator):
-		_front(NULL),
-		_back(NULL),
+		_end(_init_end()),
 		_allocator(allocator),
 		_size(0)
 	{
@@ -40,50 +78,55 @@ namespace ft
 	template<class T, class Allocator>
 	list<T, Allocator>::list(size_type count, const T& value,
 		const Allocator& allocator):
-		_front(NULL),
-		_back(NULL),
+		_end(_init_end()),
 		_allocator(allocator),
 		_size(0)
 	{
-		while (count--)
-			push_back(value);
+		insert(end(), count, value);
 	}
 
 	template<class T, class Allocator>
 	template<class InputIt>
 	list<T, Allocator>::list(InputIt first, InputIt last,
 		const Allocator& allocator):
-		_front(NULL),
-		_back(NULL),
+		_end(_init_end()),
 		_allocator(allocator),
 		_size(0)
 	{
-		(void)first;
-		(void)last;
+		insert(end(), first, last);
 	}
 
 	template<class T, class Allocator>
 	list<T, Allocator>::list(const list& other):
-		_front(NULL),
-		_back(NULL),
+		_end(_init_end()),
 		_size(0)
 	{
-		(void)other;
+		const_iterator	it;
+
+		it = other.begin();
+		while (it != other.end())
+			push_back(*it++);
 	}
 
 	template<class T, class Allocator>
 	list<T, Allocator>::~list()
 	{
-		for (size_t i = 0; i < size_type; i++)
-		{
-			
-		}
+		clear();
+		_destroy_node(_end);
 	}
 
 	template<class T, class Allocator>
 	list<T, Allocator>&	list<T, Allocator>::operator=(const list& other)
 	{
-		(void)other;
+		const_iterator	it;
+
+		if (this != &other)
+		{
+			clear();
+			it = other.begin();
+			while (it != other.end())
+				push_back(*it++);
+		}
 		return (*this);
 	}
 
@@ -94,25 +137,25 @@ namespace ft
 	template<class T, class Allocator>
 	T&	list<T, Allocator>::front()
 	{
-		return (_front->value);
+		return (_end->next->value);
 	}
 
 	template<class T, class Allocator>
 	const T&	list<T, Allocator>::front() const
 	{
-		return (_front->value);
+		return (_end->next->value);
 	}
 
 	template<class T, class Allocator>
 	T&	list<T, Allocator>::back()
 	{
-		return (_back->value);
+		return (_end->prev->value);
 	}
 
 	template<class T, class Allocator>
 	const T&	list<T, Allocator>::back() const
 	{
-		return (_back->value);
+		return (_end->prev->value);
 	}
 
 	// ------------------------------------------------------------------ //
@@ -122,25 +165,25 @@ namespace ft
 	template<class T, class Allocator>
 	typename list<T, Allocator>::iterator	list<T, Allocator>::begin()
 	{
-		return (iterator(_front));
+		return (_end->next);
 	}
 
 	template<class T, class Allocator>
 	typename list<T, Allocator>::const_iterator	list<T, Allocator>::begin() const
 	{
-		return (const_iterator(_front));
+		return (_end->next);
 	}
 
 	template<class T, class Allocator>
 	typename list<T, Allocator>::iterator	list<T, Allocator>::end()
 	{
-		return (iterator());
+		return (_end);
 	}
 
 	template<class T, class Allocator>
 	typename list<T, Allocator>::const_iterator	list<T, Allocator>::end() const
 	{
-		return (const_iterator());
+		return (_end);
 	}
 
 	template<class T, class Allocator>
@@ -199,19 +242,29 @@ namespace ft
 	typename list<T, Allocator>::iterator
 	list<T, Allocator>::insert(const_iterator pos, const T& value)
 	{
-		(void)pos;
-		(void)value;
-		return (iterator());
+		Node*	new_node = _make_node(value);
+
+		new_node->next = pos._node;
+		new_node->prev = pos._node->prev;
+		pos._node->prev->next = new_node;
+		pos._node->prev = new_node;
+		_size++;
+		return (iterator(new_node));
 	}
 
 	template<class T, class Allocator>
 	typename list<T, Allocator>::iterator
 	list<T, Allocator>::insert(const_iterator pos, size_type count, const T& value)
 	{
-		(void)pos;
-		(void)count;
-		(void)value;
-		return (iterator());
+		iterator	first;
+
+		if (count == 0)
+			return (pos);
+
+		first = insert(pos, value);
+		while (--count)
+			insert(pos, value);
+		return (first);
 	}
 
 	template<class T, class Allocator>
@@ -219,86 +272,89 @@ namespace ft
 	typename list<T, Allocator>::iterator
 	list<T, Allocator>::insert(const_iterator pos, InputIt first, InputIt last)
 	{
-		(void)pos;
-		(void)first;
-		(void)last;
-		return (iterator());
+		iterator	pos_first;
+
+		if (first == last)
+			return (pos);
+		
+		pos_first = insert(pos, *first++);
+		for (InputIt it = first; it != last; it++)
+			insert(pos, *it);
+		return (pos_first);
 	}
 
 	template<class T, class Allocator>
 	typename list<T, Allocator>::iterator
 	list<T, Allocator>::erase(iterator pos)
 	{
-		(void)pos;
-		return (iterator());
+		Node	*node = pos._node;
+
+		pos++;
+		if (node != _end)
+			_erase_node(node);
+		return (pos);
 	}
 
 	template<class T, class Allocator>
 	typename list<T, Allocator>::iterator
 	list<T, Allocator>::erase(iterator first, iterator last)
 	{
-		(void)first;
-		(void)last;
-		return (iterator());
+		while (first != last)
+			first = erase(first);
+		return (last);
 	}
 
 	template<class T, class Allocator>
 	void	list<T, Allocator>::push_back(const T& value)
 	{
-		if (_size == 0)
-		{
-			_back = _make_node(value);
-			_back->prev = NULL;
-			_front = _back;
-		}
-		else
-		{
-			_back->next = _make_node(value);
-			_back->next->prev = _back;
-			_back = _back->next;
-		}
-		_back->next = NULL;
-		_size++;
+		insert(_end, value);
 	}
 
 	template<class T, class Allocator>
 	void	list<T, Allocator>::pop_back()
 	{
+		erase(iterator(_end->prev));
 	}
 
 	template<class T, class Allocator>
 	void	list<T, Allocator>::push_front(const T& value)
 	{
-		(void)value;
+		insert(_end->next, value);
 	}
 
 	template<class T, class Allocator>
 	void	list<T, Allocator>::pop_front()
 	{
+		erase(iterator(_end->next));
 	}
 
 	template<class T, class Allocator>
 	void	list<T, Allocator>::resize(size_type count)
 	{
-		(void)count;
+		resize(count, T());
 	}
 
 	template<class T, class Allocator>
 	void	list<T, Allocator>::resize(size_type count, const T& value)
 	{
-		(void)count;
-		(void)value;
+		while (_size < count)
+			push_back(value);
+		while (_size > count)
+			pop_back();
 	}
 
 	template<class T, class Allocator>
 	void	list<T, Allocator>::swap(list& other)
 	{
-		(void)other;
+		_swap(_end, other._end);
+		_swap(_allocator, other._allocator);
+		_swap(_size, other._size);
 	}
 
 	template<class T, class Allocator>
 	void	list<T, Allocator>::clear()
 	{
+		erase(begin(), end()); 
 	}
 
 	// ------------------------------------------------------------------ //
@@ -397,8 +453,17 @@ namespace ft
 	bool	operator==(const list<T, Allocator>& lhs,
 		const list<T, Allocator>& rhs)
 	{
-		(void)lhs;
-		(void)rhs;
+		if (lhs.size() != rhs.size())
+			return (false);
+		typename list<T, Allocator>::const_iterator	lit = lhs.begin();
+		typename list<T, Allocator>::const_iterator	rit = rhs.begin();
+		while (lit != lhs.end() && *lit == *rit)
+		{
+			lit++;
+			rit++;
+		}
+		if (lit == lhs._end)
+			return (true);
 		return (false);
 	}
 
@@ -406,17 +471,22 @@ namespace ft
 	bool	operator!=(const list<T, Allocator>& lhs,
 		const list<T, Allocator>& rhs)
 	{
-		(void)lhs;
-		(void)rhs;
-		return (false);
+		return (!operator==(lhs, rhs));
 	}
 
 	template<class T, class Allocator>
 	bool	operator<(const list<T, Allocator>& lhs,
 		const list<T, Allocator>& rhs)
 	{
-		(void)lhs;
-		(void)rhs;
+		typename list<T, Allocator>::const_iterator	lit = lhs.begin();
+		typename list<T, Allocator>::const_iterator	rit = rhs.begin();
+		while (lit != lhs._end && rit != rhs._end && *lit < *rit)
+		{
+			lit++;
+			rit++;
+		}
+		if (lit == lhs._end && rit != rhs._end)
+			return (true);
 		return (false);
 	}
 
@@ -424,34 +494,27 @@ namespace ft
 	bool	operator<=(const list<T, Allocator>& lhs,
 		const list<T, Allocator>& rhs)
 	{
-		(void)lhs;
-		(void)rhs;
-		return (false);
+		return (!operator>(lhs, rhs));
 	}
 
 	template<class T, class Allocator>
 	bool	operator>(const list<T, Allocator>& lhs,
 		const list<T, Allocator>& rhs)
 	{
-		(void)lhs;
-		(void)rhs;
-		return (false);
+		return (operator<(rhs, lhs));
 	}
 
 	template<class T, class Allocator>
 	bool	operator>=(const list<T, Allocator>& lhs,
 		const list<T, Allocator>& rhs)
 	{
-		(void)lhs;
-		(void)rhs;
-		return (false);
+		return (!operator<(lhs, rhs));
 	}
 
 	template<class T, class Allocator>
 	void	swap(list<T, Allocator>& lhs, list<T, Allocator>& rhs)
 	{
-		(void)lhs;
-		(void)rhs;
+		lhs.swap(rhs);
 	}
 }
 

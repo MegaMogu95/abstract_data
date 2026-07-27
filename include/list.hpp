@@ -19,13 +19,18 @@ namespace ft
 			};
 
 			typedef typename Allocator::template rebind<Node>::other node_allocator;
-			Node			*_front;
-			Node			*_back; //front -> back
+			Node			*_end; //_end->next = 
 			node_allocator	_allocator;
 			std::size_t		_size;
 
+			Node*	_init_end();
+			Node*	_make_node();
 			Node*	_make_node(const T& value);
 			void	_destroy_node(Node* node);
+			void	_erase_node(Node* node);
+
+			template<class U>
+			void	_swap(U& a, U& b);
 
 		public:
 			typedef T												value_type;

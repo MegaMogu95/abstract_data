@@ -20,7 +20,7 @@ namespace ft
 
 			typedef typename Allocator::template rebind<Node>::other node_allocator;
 			Node			*_front;
-			Node			*_back;
+			Node			*_back; //front -> back
 			node_allocator	_allocator;
 			std::size_t		_size;
 
@@ -63,6 +63,8 @@ namespace ft
 
 			T&			front();
 			const T&	front() const;
+			T&			back();
+			const T&	back() const;
 
 			// ------------------------------------------------------------------ //
 			//  Iterators                                                          //

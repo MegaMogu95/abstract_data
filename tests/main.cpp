@@ -13,6 +13,8 @@ template<class C>
 void	print_elem(C container)
 {
 	typename C::const_iterator it;
+
+	std::cout << container.size() << '\n';
 	it = container.begin();
 	while (it != container.end())
 		std::cout << *it++ << ' ';
@@ -31,25 +33,22 @@ void	rprint_elem(C container)
 
 int	main()
 {
-	ns::list<int>			list;
-	ns::list<int>::iterator it;
+	ns::list<int>	list;
+	ns::list<int>	other;
 
-	for (int i = 0; i < 10; i++)
+	for (int i = 0; i < 5; i++)
 		list.push_back(i);
-	std::cout << "list size: " << list.size() << '\n';
+	for (int i = -1; i < 6; i++)
+		other.push_back(i);
 	print_elem(list);
-	list.push_front(10);
+	print_elem(other);
+	list.merge(other);
 	print_elem(list);
-	list.pop_front();
-	list.pop_back();
+	print_elem(other);
+	list.remove(5);
 	print_elem(list);
-	list.clear();
-	std::cout << "list size: " << list.size() << '\n';
+	list.reverse();
 	print_elem(list);
-
-	int				array[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9};
-	ns::list<int>	other_list(array, array + 10);
-	list = other_list;
-	rprint_elem(list);
-	rprint_elem(other_list);
+	list.sort();
+	print_elem(list);
 }

@@ -130,8 +130,8 @@ namespace ft
 				const_iterator last);
 
 			void	remove(const T& value);
-			template<class UnaryPredicate>
-			size_type	remove_if(UnaryPredicate p);
+			template<typename UnaryPredicate>
+			void	remove_if(UnaryPredicate p);
 
 			void	reverse();
 

@@ -3,6 +3,7 @@
 
 # include <iterator> //for tags
 # include <stddef.h> //for ptrdiff_t
+# include "functional.hpp" //for ft::less<>
 
 namespace ft
 {
@@ -209,6 +210,17 @@ namespace ft
 		const reverse_iterator<It1>& lhs, const reverse_iterator<It2>& rhs)
 	{
 		return (rhs.base() - lhs.base());
+	}
+
+	template<class InputIt>
+	typename iterator_traits<InputIt>::difference_type
+		distance(InputIt first, InputIt last)
+	{
+		typename iterator_traits<InputIt>::difference_type	d = 0;
+
+		while (first++ != last)
+			d++;
+		return (d);
 	}
 }
 

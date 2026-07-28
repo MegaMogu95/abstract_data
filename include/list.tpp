@@ -1,8 +1,6 @@
 #ifndef LIST_TPP
 # define LIST_TPP
 
-# include "utility.hpp" //_swap
-
 namespace ft
 {
 	// ------------------------------------------------------------------ //
@@ -256,7 +254,7 @@ namespace ft
 	typename list<T, Allocator>::iterator
 	list<T, Allocator>::insert(const_iterator pos, size_type count, const T& value)
 	{
-		iterator	first;
+		const_iterator	first;
 
 		if (count == 0)
 			return (pos);
@@ -272,7 +270,7 @@ namespace ft
 	typename list<T, Allocator>::iterator
 	list<T, Allocator>::insert(const_iterator pos, InputIt first, InputIt last)
 	{
-		iterator	pos_first;
+		const_iterator	pos_first;
 
 		if (first == last)
 			return (pos);
@@ -364,61 +362,119 @@ namespace ft
 	template<class T, class Allocator>
 	void	list<T, Allocator>::merge(list& other)
 	{
-		(void)other;
+		merge(other, less<T>());
 	}
 
 	template<class T, class Allocator>
 	template<class Compare>
 	void	list<T, Allocator>::merge(list& other, Compare cmp)
 	{
-		(void)other;
-		(void)cmp;
+		const_iterator	pos = begin();
+		const_iterator	first = other.begin();
+		const_iterator	last;
+
+		if (this == &other)
+			return ;
+
+		while (first != other.end())
+		{
+			if (pos == end())
+			{
+				splice(pos, other);
+				return ;
+			}
+			if (!cmp(*first, *pos)) //pos <= first
+				pos++;
+			else
+			{
+				last = first;
+				last++;
+				while (last != other.end() && cmp(*last, *pos))
+					last++;
+				splice(pos, other, first, last);
+				first = last;
+			}
+		}
 	}
 
 	template<class T, class Allocator>
 	void	list<T, Allocator>::splice(const_iterator pos, list& other)
 	{
-		(void)pos;
-		(void)other;
+		splice(pos, other, other.begin(), other.end());
 	}
 
 	template<class T, class Allocator>
 	void	list<T, Allocator>::splice(const_iterator pos, list& other,
 		const_iterator it)
 	{
-		(void)pos;
-		(void)other;
-		(void)it;
+		splice(pos, other, it, other.end());
 	}
 
 	template<class T, class Allocator>
 	void	list<T, Allocator>::splice(const_iterator pos, list& other,
 		const_iterator first, const_iterator last)
 	{
-		(void)pos;
-		(void)other;
-		(void)first;
-		(void)last;
+		Node	*p = pos._node;
+		Node	*f = first._node;
+		Node	*l = last._node->prev;
+		typename iterator_traits<const_iterator>::difference_type	d;
+
+		if (first == last || this == &other)
+			return ;
+
+		d = distance(first, last);
+		other._size -= d;
+		_size += d;
+
+		f->prev->next = last._node;
+		last._node->prev = f->prev;
+
+		p->prev->next = f;
+		f->prev = p->prev;
+		l->next = p;
+		p->prev = l;
 	}
 
 	template<class T, class Allocator>
 	void	list<T, Allocator>::remove(const T& value)
 	{
-		(void)value;
+		const_iterator	it = begin();
+
+		while (it != end())
+		{
+			if (*it == value)
+				it = erase(it);
+			else
+				it++;
+		}
 	}
 
 	template<class T, class Allocator>
 	template<class UnaryPredicate>
-	typename list<T, Allocator>::size_type
-	list<T, Allocator>::remove_if(UnaryPredicate p)
+	void	list<T, Allocator>::remove_if(UnaryPredicate p)
 	{
-		(void)p;
-		return (0);
+		const_iterator	it = begin();
+
+		while (it != end())
+		{
+			if (p(*it))
+				it = erase(it);
+			else
+				it++;
+		}
 	}
 
 	template<class T, class Allocator>
 	void	list<T, Allocator>::reverse()
 	{
+		Node	*node = _end->next;
+
+		while (node != _end)
+		{
+			_swap(node->prev, node->next);
+			node = node->prev;
+		}
+		_swap(node->prev, node->next);
 	}
 
 	template<class T, class Allocator>
@@ -436,13 +492,26 @@ namespace ft
 	template<class T, class Allocator>
 	void	list<T, Allocator>::sort()
 	{
+		sort(less<T>());
 	}
 
 	template<class T, class Allocator>
 	template<class Compare>
 	void	list<T, Allocator>::sort(Compare cmp)
 	{
-		(void)cmp;
+		list<T, Allocator>	l;
+		const_iterator		split;
+
+		if (_size <= 1)
+			return ;
+
+		split = begin();
+		for (size_type i = 0; i < _size / 2; i++)
+			split++;
+		l.splice(l.end(), *this, split, end());
+		l.sort(cmp);
+		sort(cmp);
+		merge(l, cmp);
 	}
 
 	// ------------------------------------------------------------------ //
@@ -462,7 +531,7 @@ namespace ft
 			lit++;
 			rit++;
 		}
-		if (lit == lhs._end)
+		if (lit == lhs.end())
 			return (true);
 		return (false);
 	}
@@ -480,14 +549,16 @@ namespace ft
 	{
 		typename list<T, Allocator>::const_iterator	lit = lhs.begin();
 		typename list<T, Allocator>::const_iterator	rit = rhs.begin();
-		while (lit != lhs._end && rit != rhs._end && *lit < *rit)
+		while (lit != lhs.end() && rit != rhs.end() && *lit == *rit)
 		{
 			lit++;
 			rit++;
 		}
-		if (lit == lhs._end && rit != rhs._end)
+		if (rit == rhs.end())
+			return (false);
+		if (lit == lhs.end())
 			return (true);
-		return (false);
+		return (*lit < *rit);
 	}
 
 	template<class T, class Allocator>

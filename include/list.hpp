@@ -2,6 +2,7 @@
 # define LIST_HPP
 
 # include <memory> //for std::allocator
+# include <stddef.h> //for size_t
 # include "iterator.hpp"
 # include "list_iterator.hpp"
 
@@ -21,7 +22,7 @@ namespace ft
 			typedef typename Allocator::template rebind<Node>::other node_allocator;
 			Node			*_end; //_end->next = 
 			node_allocator	_allocator;
-			std::size_t		_size;
+			size_t		_size;
 
 			Node*	_init_end();
 			Node*	_make_node();
@@ -35,7 +36,7 @@ namespace ft
 		public:
 			typedef T												value_type;
 			typedef Allocator 										allocator_type;
-			typedef std::size_t 									size_type;
+			typedef size_t 									size_type;
 			typedef std::ptrdiff_t									difference_type;
 			typedef value_type&										reference;
 			typedef const value_type&								const_reference;
@@ -50,7 +51,7 @@ namespace ft
 			//  Orthodox                                                           //
 			// ------------------------------------------------------------------ //
 
-			list(const Allocator& allocator = Allocator());
+			explicit list(const Allocator& allocator = Allocator());
 			list(size_type count, const T& value = T(),
 				const Allocator& allocator = Allocator());
 			template<class InputIt>
@@ -97,9 +98,9 @@ namespace ft
 			// ------------------------------------------------------------------ //
 
 			iterator	insert(const_iterator pos, const T& value);
-			iterator	insert(const_iterator pos, size_type count, const T& value);
+			void		insert(const_iterator pos, size_type count, const T& value);
 			template<class InputIt>
-			iterator	insert(const_iterator pos, InputIt first, InputIt last);
+			void		insert(const_iterator pos, InputIt first, InputIt last);
 
 			iterator	erase(iterator pos);
 			iterator	erase(iterator first, iterator last);

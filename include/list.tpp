@@ -251,34 +251,23 @@ namespace ft
 	}
 
 	template<class T, class Allocator>
-	typename list<T, Allocator>::iterator
+	void
 	list<T, Allocator>::insert(const_iterator pos, size_type count, const T& value)
 	{
-		const_iterator	first;
-
-		if (count == 0)
-			return (pos);
-
-		first = insert(pos, value);
-		while (--count)
+		while (count--)
 			insert(pos, value);
-		return (first);
 	}
 
 	template<class T, class Allocator>
 	template<class InputIt>
-	typename list<T, Allocator>::iterator
+	void
 	list<T, Allocator>::insert(const_iterator pos, InputIt first, InputIt last)
 	{
-		const_iterator	pos_first;
-
-		if (first == last)
-			return (pos);
-		
-		pos_first = insert(pos, *first++);
-		for (InputIt it = first; it != last; it++)
-			insert(pos, *it);
-		return (pos_first);
+		while (first != last)
+		{
+			insert(pos, *first);
+			++first;
+		}
 	}
 
 	template<class T, class Allocator>
@@ -407,7 +396,10 @@ namespace ft
 	void	list<T, Allocator>::splice(const_iterator pos, list& other,
 		const_iterator it)
 	{
-		splice(pos, other, it, other.end());
+		const_iterator	last = it;
+
+		++last;
+		splice(pos, other, it, last);
 	}
 
 	template<class T, class Allocator>
@@ -422,7 +414,7 @@ namespace ft
 		if (first == last || this == &other)
 			return ;
 
-		d = distance(first, last);
+		d = ft::distance(first, last);
 		other._size -= d;
 		_size += d;
 
@@ -480,13 +472,44 @@ namespace ft
 	template<class T, class Allocator>
 	void	list<T, Allocator>::unique()
 	{
+		iterator	it = begin();
+		iterator	next = it;
+
+		if (_size < 2)
+			return;
+		next++;
+		while (next != end())
+		{
+			if (*it == *next)
+				next = erase(next);
+			else
+			{
+				it++;
+				next++;
+			}
+		}
 	}
 
 	template<class T, class Allocator>
 	template<class BinaryPredicate>
 	void	list<T, Allocator>::unique(BinaryPredicate p)
 	{
-		(void)p;
+		iterator	it = begin();
+		iterator	next = it;
+
+		if (_size < 2)
+			return;
+		next++;
+		while (next != end())
+		{
+			if (p(*it, *next))
+				next = erase(next);
+			else
+			{
+				it++;
+				next++;
+			}
+		}
 	}
 
 	template<class T, class Allocator>

@@ -2,25 +2,20 @@
 # define DEQUE_HPP
 
 # include <memory> //for std::allocator
-# include <stddef.h> //for size_t
+# include <stddef.h> //for size_t and ptrdiff_t
 # include "iterator.hpp"
+# include "exception.hpp"
 
 namespace ft
 {
 	template<class T, class Allocator = std::allocator<T> >
 	class deque
 	{
-		private:
-			T**					_map;
-			size_t				_size;
-			size_t				_capacity;
-			static const size_t	_chunk_size = 256;
-			Allocator			_allocator;
 		public:
 			typedef T												value_type;
 			typedef Allocator										allocator_type;
 			typedef size_t										size_type;
-			typedef std::ptrdiff_t									difference_type;
+			typedef ptrdiff_t									difference_type;
 			typedef value_type&										reference;
 			typedef const value_type&								const_reference;
 			typedef typename Allocator::pointer						pointer;
@@ -33,6 +28,25 @@ namespace ft
 			typedef const_pointer									const_iterator;
 			typedef ft::reverse_iterator<iterator>					reverse_iterator;
 			typedef ft::reverse_iterator<const_iterator>			const_reverse_iterator;
+		private:
+			typedef typename Allocator::template rebind<T*>::other	_map_allocator;
+
+			T**						_map;
+			size_type				_map_capacity;
+			static const size_type	_chunk_capacity = 256;
+			size_type				_front;
+			size_type				_end; //[front, end) contains all elements
+			Allocator				_allocator;
+			// ------------------------------------------------------------------ //
+			//  Private helpers                                                    //
+			// ------------------------------------------------------------------ //
+			
+			template<class U>
+			void	_swap(U& a, U& b);
+			void	_init();
+			void	_grow(size_type count);
+
+		public:
 
 			// ------------------------------------------------------------------ //
 			//  Orthodox                                                           //

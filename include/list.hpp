@@ -11,28 +11,6 @@ namespace ft
 	template<class T, class Allocator = std::allocator<T> >
 	class list
 	{
-		private:
-			struct Node
-			{
-				T		value;
-				Node	*prev;
-				Node	*next;
-			};
-
-			typedef typename Allocator::template rebind<Node>::other node_allocator;
-			Node			*_end; //_end->next = 
-			node_allocator	_allocator;
-			size_t		_size;
-
-			Node*	_init_end();
-			Node*	_make_node();
-			Node*	_make_node(const T& value);
-			void	_destroy_node(Node* node);
-			void	_erase_node(Node* node);
-
-			template<class U>
-			void	_swap(U& a, U& b);
-
 		public:
 			typedef T												value_type;
 			typedef Allocator 										allocator_type;
@@ -46,6 +24,29 @@ namespace ft
 			typedef ft::list_iterator<T, Node, const T&, const T*>	const_iterator;
 			typedef ft::reverse_iterator<iterator>					reverse_iterator;
 			typedef ft::reverse_iterator<const_iterator>			const_reverse_iterator;
+		private:
+			struct Node
+			{
+				T		value;
+				Node	*prev;
+				Node	*next;
+			};
+
+			typedef typename Allocator::template rebind<Node>::other node_allocator;
+			Node			*_end;
+			node_allocator	_allocator;
+			size_type		_size;
+
+			Node*	_init_end();
+			Node*	_make_node();
+			Node*	_make_node(const T& value);
+			void	_destroy_node(Node* node);
+			void	_erase_node(Node* node);
+
+			template<class U>
+			void	_swap(U& a, U& b);
+
+		public:
 
 			// ------------------------------------------------------------------ //
 			//  Orthodox                                                           //
